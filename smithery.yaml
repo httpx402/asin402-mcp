@@ -1,0 +1,29 @@
+# Smithery configuration: runs the published npm package over stdio
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required:
+      - privateKey
+    properties:
+      privateKey:
+        type: string
+        description: Private key of a small dedicated wallet holding a few dollars of USDC on Base. Pays each tool call.
+      budget:
+        type: string
+        default: "5"
+        description: Max USD spent per session.
+      maxPerCall:
+        type: string
+        default: "0.25"
+        description: Max USD for any single call.
+  commandFunction: |-
+    (config) => ({
+      command: 'npx',
+      args: ['-y', 'asin402-mcp'],
+      env: {
+        ASIN402_PRIVATE_KEY: config.privateKey,
+        ASIN402_BUDGET: config.budget || '5',
+        ASIN402_MAX_PER_CALL: config.maxPerCall || '0.25'
+      }
+    })

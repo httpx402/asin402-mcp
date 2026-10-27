@@ -1,0 +1,36 @@
+{
+  "name": "asin402-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for ASIN402: live Amazon product data, price history, deal verdicts, FBA profit and opportunity scores for AI assistants, paid per call in USDC via x402.",
+  "mcpName": "com.asin402/mcp",
+  "main": "index.js",
+  "bin": {
+    "asin402-mcp": "index.js"
+  },
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "amazon",
+    "asin",
+    "x402",
+    "fba",
+    "price-history",
+    "ai-agent",
+    "product-research"
+  ],
+  "homepage": "https://asin402.com",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "@x402/evm": "^2.28.0",
+    "@x402/fetch": "^2.28.0",
+    "viem": "^2.57.11",
+    "zod": "^3.25.76"
+  }
+}

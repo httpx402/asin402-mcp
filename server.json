@@ -1,0 +1,48 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.asin402/mcp",
+  "title": "ASIN402 Amazon Data",
+  "description": "Live Amazon data for AI agents: prices, history, deals, FBA profit, sell scores. Pay per call.",
+  "websiteUrl": "https://asin402.com",
+  "version": "1.0.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "asin402-mcp",
+      "version": "1.0.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "ASIN402_PRIVATE_KEY",
+          "description": "Private key of a dedicated wallet holding a few dollars of USDC on Base. Pays each tool call. Use a small, separate wallet.",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "ASIN402_BUDGET",
+          "description": "Max USD spent per session (default 5)",
+          "isRequired": false,
+          "format": "string"
+        },
+        {
+          "name": "ASIN402_MAX_PER_CALL",
+          "description": "Max USD per single call (default 0.25)",
+          "isRequired": false,
+          "format": "string"
+        }
+      ]
+    }
+  ],
+  "icons": [
+    {
+      "src": "https://asin402.com/icon.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "512x512"
+      ]
+    }
+  ]
+}
