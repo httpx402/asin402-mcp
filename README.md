@@ -4,6 +4,16 @@ Give Claude, Cursor or any MCP-compatible AI assistant **live Amazon product dat
 
 No account and no subscription. Each tool call is paid automatically in USDC on Base from your own wallet through the [x402](https://x402.org) protocol, typically $0.005–$0.10 per call, within limits you set.
 
+## Hosted server (no install, no private key)
+
+Connect any MCP client to **`https://asin402.com/mcp`** (Streamable HTTP). Free tools (`free_sample`, `how_to_pay`, `check_watch`) work without a wallet; paid tools are paid per call with x402 MCP payments (for example with [`@x402/mcp`](https://www.npmjs.com/package/@x402/mcp)), and failed calls are never charged.
+
+```bash
+claude mcp add asin402 --transport http https://asin402.com/mcp
+```
+
+Prefer to run it locally with your own wallet? Use the npm package below.
+
 ## Tools
 
 | Tool | What it does | Typical cost |
@@ -20,6 +30,10 @@ No account and no subscription. Each tool call is paid automatically in USDC on 
 | `seller_info` | Seller details and storefront | from $0.005 |
 | `category_info` / `search_categories` | Category details / find category IDs | $0.005 |
 | `top_sellers` | Most-rated sellers | from $0.005 |
+| `compare_marketplaces` | Where is it cheapest? One ASIN across 11 Amazon marketplaces, in USD | $0.03 |
+| `lookup_barcode` | UPC / EAN / ISBN to Amazon ASIN with prices and sales | from $0.005 |
+| `watch_asins` | Watch 1-50 ASINs every 1h-24h for up to 30 days: price drops, below-target, stock and buy box alerts | ~$0.003 per ASIN per check (min $0.05) |
+| `check_watch` | Read what changed on a watch since your last check | free |
 | `wallet_status` | Your balance and spending (free) | free |
 
 Failed calls (invalid input, no data, service errors) are never charged.

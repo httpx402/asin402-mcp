@@ -1,7 +1,7 @@
 {
   "name": "asin402-mcp",
-  "version": "1.0.0",
-  "description": "MCP server for ASIN402: live Amazon product data, price history, deal verdicts, FBA profit and opportunity scores for AI assistants, paid per call in USDC via x402.",
+  "version": "1.2.1",
+  "description": "MCP server for ASIN402: live Amazon product data, price history, deal verdicts, FBA profit and opportunity scores for AI assistants, paid per call in USDC via x402. mcprush.com-315429fd5fc6050c0d70d14a",
   "mcpName": "com.asin402/mcp",
   "main": "index.js",
   "bin": {
@@ -32,5 +32,12 @@
     "@x402/fetch": "^2.28.0",
     "viem": "^2.57.11",
     "zod": "^3.25.76"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/httpx402/asin402-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/httpx402/asin402-mcp/issues"
   }
 }

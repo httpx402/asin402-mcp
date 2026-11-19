@@ -13,7 +13,7 @@ const { ExactEvmScheme } = require("@x402/evm/exact/client");
 const { AsyncLocalStorage } = require("async_hooks");
 const callContext = new AsyncLocalStorage(); // tracks the exact amount authorized within each tool call
 
-const VERSION = "1.0.0";
+const VERSION = "1.2.0";
 const API = (process.env.ASIN402_URL || "https://asin402.com").replace(/\/$/, "");
 const TESTNET = process.env.ASIN402_NETWORK === "base-sepolia";
 const NETWORK = TESTNET ? "eip155:84532" : "eip155:8453";
@@ -236,6 +236,56 @@ server.registerTool("top_sellers", {
   inputSchema: { limit: z.number().int().min(1).max(10000).optional(), domain },
   annotations: ro,
 }, async (a) => call("/api/data/topsellers", { ...a, limit: a.limit ?? 100 }));
+
+server.registerTool("compare_marketplaces", {
+  title: "Where is this product cheapest? (11 Amazon marketplaces)",
+  description: "Compare one ASIN's live price across Amazon US, UK, DE, FR, IT, ES, JP, CA, IN, MX and BR, converted to USD: cheapest and most expensive marketplace, price spread and difference vs the US, with VAT/shipping caveats. Costs $0.03.",
+  inputSchema: {
+    asin,
+    marketplaces: z.array(z.enum(["us", "uk", "de", "fr", "jp", "ca", "it", "es", "in", "mx", "br"])).min(2).optional().describe("Subset to compare (default all 11)"),
+  }, annotations: ro,
+}, async ({ asin, marketplaces }) => call("/api/compare-marketplaces", { asin, marketplaces }));
+
+server.registerTool("lookup_barcode", {
+  title: "Barcode (UPC/EAN/ISBN) to Amazon ASIN",
+  description: "Find the Amazon listings for 1-20 barcodes (UPC, EAN, GTIN or ISBN-13): ASIN, title, brand, link, current prices, sales rank and estimated monthly sales. From $0.005; not charged if nothing matches.",
+  inputSchema: {
+    codes: z.array(z.string().regex(/^\d{8,14}$/, "8-14 digit barcode")).min(1).max(20).describe("Barcodes, e.g. [\"9780735211292\"]"),
+    max_per_code: z.number().int().min(1).max(5).optional().describe("Max listings per barcode (default 3)"),
+    domain,
+  }, annotations: ro,
+}, async ({ codes, max_per_code, domain }) => call("/api/lookup", { code: codes, max_per_code, domain }));
+
+// ---------- Watch mode ----------
+server.registerTool("watch_asins", {
+  title: "Watch Amazon products over time (price, buy box, stock alerts)",
+  description: "Pay once to have ASIN402 check 1-50 ASINs on a schedule (every 1h-24h, for 1-30 days) and record changes: price drops/rises, falls below your target price, out of stock / back in stock, buy box seller changes, offer count and sales rank moves. Returns a watch_id and a secret key (save both); read new events later with check_watch (free). The first check runs immediately. Price = ASINs x checks x about $0.003 (minimum $0.05); e.g. 10 ASINs every 6h for 7 days is about $0.84. Make sure your per-call cap (ASIN402_MAX_PER_CALL) allows it.",
+  inputSchema: {
+    asins: z.array(z.string().regex(/^[A-Za-z0-9]{10}$/)).min(1).max(50).describe("ASINs to watch"),
+    domain,
+    interval: z.enum(["1h", "3h", "6h", "12h", "24h"]).optional().describe("Time between checks (default 6h)"),
+    days: z.number().int().min(1).max(30).optional().describe("How long to watch (default 7)"),
+    price_below: z.number().positive().optional().describe("Alert when the price falls to or below this (marketplace currency)"),
+    min_change_pct: z.number().min(0).max(90).optional().describe("Ignore price moves smaller than this percent (default 1)"),
+    buybox: z.boolean().optional().describe("Track buy box price and seller (default true; false is about 3x cheaper)"),
+  }, annotations: { readOnlyHint: false, openWorldHint: true },
+}, async ({ asins, domain, interval, days, price_below, min_change_pct, buybox }) => call("/api/watch", {}, { asins: asins.map((a) => a.toUpperCase()), domain, interval, days, price_below, min_change_pct, buybox: buybox === false ? 0 : 1 }));
+
+server.registerTool("check_watch", {
+  title: "Read a watch: what changed (free)",
+  description: "Free. Returns new events for a watch created with watch_asins (price drops, below target, out of stock, buy box changes...) plus the latest snapshot per ASIN and when the next check runs. Pass since = next_since from your previous check to get only new events.",
+  inputSchema: {
+    watch_id: z.string().regex(/^w_[A-Za-z0-9_-]+$/).describe("watch_id from watch_asins"),
+    key: z.string().min(10).describe("The key returned by watch_asins"),
+    since: z.number().int().min(0).optional().describe("Only events after this sequence number (next_since from the last check)"),
+  }, annotations: ro,
+}, async ({ watch_id, key, since }) => {
+  try {
+    const r = await fetch(`${API}/api/watch/${encodeURIComponent(watch_id)}${qs({ key, since })}`, { headers: { Accept: "application/json" } });
+    const j = await r.json().catch(() => ({}));
+    return r.ok ? text(j) : fail(`ASIN402 error ${r.status}: ${j.error || JSON.stringify(j)}`.slice(0, 1000));
+  } catch (e) { return fail(`Network error: ${e.message}`); }
+});
 
 // ---------- Free ----------
 server.registerTool("wallet_status", {
